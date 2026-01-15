@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Riley’s Galaxy Multiply Quest</title>
+<style>
+  :root{
+    --panel: rgba(0,0,0,.42);
+    --gold:#ffd966;
+    --mint:#8fffd6;
+    --good:#7CFFB2;
+    --bad:#FF7AA2;
+  }
+  body{
+    margin:0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: radial-gradient(circle at top, #213a9a, #05081f);
+    color:#fff;
+    text-align:center;
+    overflow-x:hidden;
+  }
+  header{ padding:12px 10px 6px; }
+  h1{ margin:0; color:var(--gold); letter-spacing:.4px; font-size:22px; }
+  .sub{ opacity:.9; font-size:13px; margin-top:4px; }
+  .wrap{ max-width:980px; margin:0 auto; padding:10px; }
+  .panel{
+    background:var(--panel);
+    border-radius:16px;
+    padding:14px;
+    margin:10px auto;
+    box-shadow:0 0 24px rgba(255,255,255,.12);
+  }
+  .row{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; align-items:stretch; }
+  .col{ flex:1; min-width:260px; }
+  .hr{ height:1px; background:rgba(255,255,255,.14); margin:10px 0; }
+  .pill{
+    padding:8px 10px; border-radius:999px; background:rgba(255,255,255,.10);
+    display:inline-flex; gap:8px; align-items:center; justify-content:center;
+    margin:4px;
+  }
+  button{
+    border:none; border-radius:12px; padding:10px 14px;
+    background: linear-gradient(135deg, #7cf, #4af);
+    cursor:pointer; font-size:16px; margin:6px;
+    color:#00101a;
+    font-weight:700;
+  }
+  button.secondary{ background:rgba(255,255,255,.14); color:#fff; font-weight:600; }
+  button.danger{ background:linear-gradient(135deg, #ff7aa2, #ff3d7b); color:#21000d; }
+  button:active{ transform:scale(.99); }
+  input, select{
+    font-size:16px; padding:10px 10px; border-radius:12px; border:none;
+    background:rgba(255,255,255,.12); color:#fff; outline:none;
+  }
+  input::placeholder{ color:rgba(255,255,255,.6); }
+  .tables button{ width:52px; height:44px; background:rgba(255,255,255,.14); color:#fff; }
+  .tables button.on{ outline:2px solid var(--mint); background:rgba(143,255,214,.18); }
+  .question{ font-size:40px; margin:14px 0 10px; }
+  .feedback{ min-height:32px; font-size:18px; }
+  .stats{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px; }
+  .card{ background:rgba(255,255,255,.10); border-radius:14px; padding:10px 12px; min-width:120px; }
+  .tiny{ font-size:12px; opacity:.85; }
+  .bar{ height:10px; border-radius:999px; background:rgba(255,255,255,.10); overflow:hidden; margin-top:6px; }
+  .bar > div{ height:100%; width:0%; background:linear-gradient(90deg, #7cf, #4af); }
+  .badge{
+    display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(255,217,102,.18);
+    border:1px solid rgba(255,217,102,.45); margin:4px; font-size:13px;
+  }
+  .confetti{ pointer-events:none; position:fixed; inset:0; overflow:hidden; display:none; }
+  .spark{ position:absolute; width:8px; height:8px; border-radius:2px; background:rgba(255,255,255,.9);
+    animation: fall 1.25s linear forwards; }
+  @keyframes fall{
+    0%{ transform:translateY(-20px) rotate(0deg); opacity:1; }
+    100%{ transform:translateY(110vh) rotate(540deg); opacity:0; }
+  }
+
+  /* Avatar bubble */
+  .avatarDock{
+    position:relative;
+    background:rgba(255,255,255,.08);
+    border-radius:18px;
+    padding:12px;
+    height:100%;
+  }
+  .avatarGlow{
+    position:relative;
+    width:100%;
+    max-width:260px;
+    margin:0 auto;
+    border-radius:18px;
+    padding:10px;
+    background: radial-gradient(circle at top, rgba(124,204,255,.35), rgba(255,255,255,.06));
+    box-shadow:0 0 26px rgba(124,204,255,.25);
+  }
+  .avatarImg{
+    width:100%;
+    border-radius:16px;
+    display:block;
+    transform: translateY(0px) scale(1);
+    animation: floaty 2.8s ease-in-out infinite;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
+  }
+  @keyframes floaty{
+    0%{ transform:translateY(0px) scale(1); }
+    50%{ transform:translateY(-6px) scale(1.01); }
+    100%{ transform:translateY(0px) scale(1); }
+  }
+
+  .avatarSpeech{
+    margin-top:10px;
+    background:rgba(0,0,0,.35);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:14px;
+    padding:10px;
+    min-height:58px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    line-height:1.25;
+  }
+  .pulseGood{ animation: pulseG .6s ease-out 1; }
+  .pulseBad{ animation: pulseB .6s ease-out 1; }
+  @keyframes pulseG{
+    0%{ box-shadow:0 0 0 rgba(124,255,178,0); }
+    40%{ box-shadow:0 0 26px rgba(124,255,178,.35); }
+    100%{ box-shadow:0 0 0 rgba(124,255,178,0); }
+  }
+  @keyframes pulseB{
+    0%{ box-shadow:0 0 0 rgba(255,122,162,0); }
+    40%{ box-shadow:0 0 26px rgba(255,122,162,.35); }
+    100%{ box-shadow:0 0 0 rgba(255,122,162,0); }
+  }
+
+  @media (max-width: 820px){
+    .question{ font-size:34px; }
+    button{ font-size:15px; }
+  }
+
+  .cheer { animation: cheer 0.6s ease-out 1; }
+  .sad { animation: sad 0.6s ease-out 1; filter: grayscale(40%) brightness(0.9); }
+  @keyframes cheer {
+    0%{ transform: translateY(0) scale(1); }
+    40%{ transform: translateY(-10px) scale(1.05); }
+    100%{ transform: translateY(0) scale(1); }
+  }
+  @keyframes sad {
+    0%{ transform: translateX(0); }
+    25%{ transform: translateX(-4px); }
+    50%{ transform: translateX(4px); }
+    75%{ transform: translateX(-3px); }
+    100%{ transform: translateX(0); }
+  }
+
+</style>
+</head>
+<body>
+<div class="confetti" id="confetti"></div>
+
+<header>
+  <h1>🚀 Riley’s Galaxy Multiply Quest</h1>
+  <div class="sub">Levels • Boss Battles • Mastery by Table • Voice (US best available) • Saves Progress</div>
+</header>
+
+
+<!-- iPad tip banner -->
+<div id="ipadTip" style="max-width:980px;margin:10px auto 0;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.10);font-size:13px;opacity:.92;">
+  <b>iPad tip:</b> If you opened this in the Files “preview” and buttons don’t respond, tap <b>Share → Open in Safari</b>, then <b>Share → Add to Home Screen</b>.
+</div>
+
+<div class="wrap">
+
+  <div class="panel" id="setup">
+    <div class="row">
+      <div class="col">
+        <h2 style="margin:8px 0 8px;">1) Pick tables</h2>
+        <div class="tables" id="tables"></div>
+        <div class="tiny">Tip: choose 2–3 tables at a time for fastest mastery.</div>
+      </div>
+
+      <div class="col">
+        <h2 style="margin:8px 0 8px;">2) Settings</h2>
+        <div class="row">
+          <label class="pill">Level:
+            <select id="levelSel">
+              <option value="easy">Easy (×2–×6)</option>
+              <option value="medium" selected>Medium (×2–×12)</option>
+              <option value="hard">Hard (mixed + 2-step)</option>
+            </select>
+          </label>
+          <label class="pill">Round:
+            <select id="roundLen">
+              <option value="10" selected>10 questions</option>
+              <option value="15">15 questions</option>
+              <option value="20">20 questions</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="hr"></div>
+
+        <h2 style="margin:8px 0 8px;">3) Voice</h2>
+        <div class="row">
+          <label class="pill">US Voice:
+            <select id="voiceSel"></select>
+          </label>
+          <label class="pill">Speed:
+            <select id="rateSel">
+              <option value="0.9">0.9×</option>
+              <option value="1.0" selected>1.0×</option>
+              <option value="1.1">1.1×</option>
+              <option value="1.2">1.2×</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button class="secondary" id="testVoiceBtn">Test voice</button>
+          <button class="secondary" id="muteBtn">🔊 Voice ON</button>
+        </div>
+        <div class="tiny" style="opacity:.85">
+          If the voice sounds robotic on iPad: Settings → Accessibility → Spoken Content → Voices (download an enhanced US voice).
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="avatarDock">
+          <div class="avatarGlow" id="avatarGlow">
+            <img class="avatarImg" id="avatarImgSetup" alt="Riley avatar" src="avatar.png">
+          </div>
+          <div class="avatarSpeech" id="avatarSpeech">Hi Riley! Pick your tables, then tap <b>Start Mission</b> 🚀</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="row">
+      <button id="startBtn">Start Mission</button>
+      <button class="secondary" id="resetProgressBtn">Reset saved progress</button>
+    </div>
+
+    <div style="margin-top:10px;">
+      <div class="tiny" style="opacity:.85">Saved Progress Summary</div>
+      <div id="progressSummary" class="row"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="game" style="display:none;">
+    <div class="row">
+      <div class="pill">🎯 <span id="goalText"></span></div>
+      <div class="pill">👾 Boss in: <b><span id="bossIn">10</span></b> correct</div>
+      <div class="pill">⏱️ <b><span id="timer">0</span></b>s</div>
+    </div>
+
+    <div class="row" style="align-items:center;">
+      <div class="col" style="min-width:290px;">
+        <div class="question" id="question">—</div>
+        <div class="row">
+          <input id="answer" type="number" inputmode="numeric" placeholder="answer" />
+          <button id="submitBtn">Submit</button>
+          <button class="secondary" id="skipBtn">Skip</button>
+          <button class="danger" id="endBtn">End Round</button>
+        </div>
+        <div class="feedback" id="feedback"></div>
+      </div>
+
+      <div class="col" style="min-width:260px; max-width:360px;">
+        <div class="avatarDock">
+          <div class="avatarGlow" id="avatarGlowGame">
+            <img class="avatarImg" id="avatarImgGame" alt="Riley avatar" src="avatar.png">
+          </div>
+          <div class="avatarSpeech" id="avatarSpeechGame">Let’s go! I’ll cheer you on. ✨</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="card">⭐ XP<br><b id="xp">0</b></div>
+      <div class="card">🔥 Streak<br><b id="streak">0</b></div>
+      <div class="card">✅ Correct<br><b id="correct">0</b></div>
+      <div class="card">❌ Missed<br><b id="missed">0</b></div>
+      <div class="card">🎯 Accuracy<br><b id="acc">0%</b></div>
+      <div class="card">❓ Left<br><b id="left">0</b></div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="row">
+      <div class="col">
+        <div class="tiny" style="opacity:.85">Mastery for today’s tables</div>
+        <div id="masteryList"></div>
+      </div>
+      <div class="col">
+        <div class="tiny" style="opacity:.85">Badges</div>
+        <div id="badges"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="end" style="display:none;">
+    <h2 style="margin:8px 0;">🎉 Mission Complete!</h2>
+    <div id="summary" style="opacity:.9"></div>
+    <div class="hr"></div>
+    <div class="row">
+      <button id="playAgainBtn">Play Again</button>
+      <button class="secondary" id="backSetupBtn">Back to Setup</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = "GMQ_progress_v2";
+const defaultProgress = () => ({
+  tables: Object.fromEntries(Array.from({length:11},(_,i)=>[String(i+2), {seen:0, correct:0, bestStreak:0}])),
+  totalXP: 0,
+  badges: {}
+});
+let progress = loadProgress();
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultProgress();
+    const obj = JSON.parse(raw);
+    if(!obj.tables) obj.tables = defaultProgress().tables;
+    for(let t=2;t<=12;t++){
+      const k=String(t);
+      if(!obj.tables[k]) obj.tables[k]={seen:0, correct:0, bestStreak:0};
+    }
+    if(typeof obj.totalXP!=="number") obj.totalXP=0;
+    if(!obj.badges) obj.badges={};
+    return obj;
+  }catch(e){ return defaultProgress(); }
+}
+function saveProgress(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }
+
+const el = (id)=>document.getElementById(id);
+const els = {
+  setup: el("setup"), game: el("game"), end: el("end"),
+  tables: el("tables"), levelSel: el("levelSel"), roundLen: el("roundLen"),
+  voiceSel: el("voiceSel"), rateSel: el("rateSel"), testVoiceBtn: el("testVoiceBtn"), muteBtn: el("muteBtn"),
+  startBtn: el("startBtn"), resetProgressBtn: el("resetProgressBtn"), progressSummary: el("progressSummary"),
+  goalText: el("goalText"), bossIn: el("bossIn"), timer: el("timer"),
+  question: el("question"), answer: el("answer"), submitBtn: el("submitBtn"), skipBtn: el("skipBtn"), endBtn: el("endBtn"),
+  feedback: el("feedback"), xp: el("xp"), streak: el("streak"), correct: el("correct"), missed: el("missed"), acc: el("acc"), left: el("left"),
+  masteryList: el("masteryList"), badges: el("badges"),
+  summary: el("summary"), playAgainBtn: el("playAgainBtn"), backSetupBtn: el("backSetupBtn"),
+  confetti: el("confetti"),
+  avatarSpeech: el("avatarSpeech"), avatarSpeechGame: el("avatarSpeechGame"),
+  avatarGlow: el("avatarGlow"), avatarGlowGame: el("avatarGlowGame")
+};
+
+
+const AVATAR_NEUTRAL = "avatar.png";
+const AVATAR_CELEBRATE = "celebrate.png";
+const AVATAR_SAD = "sad.png";
+
+function setGameAvatar(src){
+  const img = document.getElementById("avatarImgGame");
+  if(img) img.src = src;
+}
+function flashAvatar(src, ms){
+  setGameAvatar(src);
+  setTimeout(()=>setGameAvatar(AVATAR_NEUTRAL), ms);
+}
+
+let selectedTables = [];
+function renderTables(){
+  els.tables.innerHTML="";
+  for(let i=2;i<=12;i++){
+    const btn=document.createElement("button");
+    btn.textContent=i;
+    btn.className = selectedTables.includes(i) ? "on" : "";
+    btn.onclick=()=>{
+      if(selectedTables.includes(i)) selectedTables = selectedTables.filter(x=>x!==i);
+      else selectedTables.push(i);
+      renderTables(); renderProgressSummary();
+      setAvatarText(`Nice! Tables selected: ${selectedTables.slice().sort((a,b)=>a-b).join(", ") || "none yet"}.`, "setup");
+    };
+    els.tables.appendChild(btn);
+  }
+}
+renderTables();
+
+function masteryPct(t){
+  const p = progress.tables[String(t)];
+  const acc = p.correct / Math.max(1,p.seen);
+  const vol = Math.min(1, p.seen / 60);
+  return Math.round((acc*0.75 + vol*0.25)*100);
+}
+function renderProgressSummary(){
+  els.progressSummary.innerHTML="";
+  for(let t=2;t<=12;t++){
+    const div=document.createElement("div");
+    div.className="badge";
+    div.textContent = `${t}×  ${masteryPct(t)}%`;
+    els.progressSummary.appendChild(div);
+  }
+}
+renderProgressSummary();
+
+/*** Speech ***/
+let voices = [];
+let muted=false;
+function loadVoices(){
+  voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  const us = voices.filter(v => (v.lang||"").toLowerCase().startsWith("en-us"));
+  const list = (us.length ? us : voices.filter(v => (v.lang||"").toLowerCase().startsWith("en-"))).slice(0,25);
+  els.voiceSel.innerHTML="";
+  list.forEach((v,idx)=>{
+    const opt=document.createElement("option");
+    opt.value=v.voiceURI;
+    opt.textContent=`${v.name} (${v.lang})`;
+    els.voiceSel.appendChild(opt);
+    if(idx===0) els.voiceSel.value=v.voiceURI;
+  });
+}
+if(window.speechSynthesis){
+  loadVoices();
+  speechSynthesis.onvoiceschanged = loadVoices;
+}
+function speak(text){
+  if(muted) return;
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = Number(els.rateSel.value || "1.0");
+  const uri = els.voiceSel.value;
+  const v = voices.find(x => x.voiceURI === uri) || voices.find(x => (x.lang||"").toLowerCase().startsWith("en-us"));
+  if(v) u.voice = v;
+  u.lang = (v && v.lang) ? v.lang : "en-US";
+  speechSynthesis.speak(u);
+}
+els.testVoiceBtn.onclick = ()=> speak("Hi Riley! Ready to multiply? Let's crush this mission!");
+els.muteBtn.onclick = ()=>{
+  muted = !muted;
+  els.muteBtn.textContent = muted ? "🔇 Voice OFF" : "🔊 Voice ON";
+};
+
+/*** Confetti ***/
+function popConfetti(){
+  const wrap = els.confetti;
+  wrap.style.display="block";
+  wrap.innerHTML="";
+  const n=80;
+  for(let i=0;i<n;i++){
+    const s=document.createElement("div");
+    s.className="spark";
+    s.style.left = Math.random()*100+"vw";
+    s.style.top = (-10 - Math.random()*30)+"px";
+    s.style.opacity = (0.4 + Math.random()*0.6).toFixed(2);
+    s.style.animationDuration = (0.9 + Math.random()*0.6).toFixed(2)+"s";
+    wrap.appendChild(s);
+  }
+  setTimeout(()=>{ wrap.style.display="none"; wrap.innerHTML=""; }, 1400);
+}
+
+/*** Avatar reactions ***/
+function setAvatarText(text, where="both"){
+  if(where==="setup" || where==="both") els.avatarSpeech.innerHTML = text;
+  if(where==="game" || where==="both") els.avatarSpeechGame.innerHTML = text;
+}
+function pulse(which, kind){
+  const node = which==="setup" ? els.avatarGlow : els.avatarGlowGame;
+  node.classList.remove("pulseGood","pulseBad");
+  void node.offsetWidth;
+  node.classList.add(kind==="good" ? "pulseGood" : "pulseBad");
+}
+
+function avatarCheer(){
+  // swap to celebrate pose briefly + run cheer animation
+  flashAvatar(AVATAR_CELEBRATE, 800);
+  const imgs = document.querySelectorAll('.avatarImg');
+  imgs.forEach(img=>{
+    img.classList.remove('sad','cheer');
+    void img.offsetWidth;
+    img.classList.add('cheer');
+    setTimeout(()=>img.classList.remove('cheer'), 700);
+  });
+}
+function avatarSad(){
+  // swap to sad pose briefly + run sad animation
+  flashAvatar(AVATAR_SAD, 900);
+  const imgs = document.querySelectorAll('.avatarImg');
+  imgs.forEach(img=>{
+    img.classList.remove('cheer','sad');
+    void img.offsetWidth;
+    img.classList.add('sad');
+    setTimeout(()=>img.classList.remove('sad'), 900);
+  });
+}
+
+
+let level="medium", roundTotal=10, remaining=10;
+let current=null;
+let streak=0, bestStreakRound=0, correct=0, missed=0, xp=0;
+let bossCounter=10;
+let timerInt=null, seconds=0;
+
+function show(screen){
+  els.setup.style.display = screen==="setup" ? "block":"none";
+  els.game.style.display  = screen==="game"  ? "block":"none";
+  els.end.style.display   = screen==="end"   ? "block":"none";
+}
+function startTimer(){
+  stopTimer();
+  seconds=0; els.timer.textContent="0";
+  timerInt=setInterval(()=>{ seconds++; els.timer.textContent=String(seconds); }, 1000);
+}
+function stopTimer(){ if(timerInt){ clearInterval(timerInt); timerInt=null; } }
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function pickB(){
+  if(level==="easy") return randInt(2,6);
+  if(level==="medium") return randInt(2,12);
+  return randInt(2,12);
+}
+function makeQuestion(){
+  const a = selectedTables[Math.floor(Math.random()*selectedTables.length)];
+  const b = pickB();
+  if(level==="hard" && Math.random()<0.35){
+    const c = randInt(1,9);
+    const op = Math.random()<0.5 ? "+" : "-";
+    return {a,b,c,op,mode:"twoStep"};
+  }
+  return {a,b,mode:"single"};
+}
+function qText(q){
+  if(q.mode==="twoStep") return `${q.a} × ${q.b} ${q.op} ${q.c} = ?`;
+  if(q.mode==="boss") return `👾 BOSS!  ${q.a} × ${q.b} = ?`;
+  return `${q.a} × ${q.b} = ?`;
+}
+function answerOf(q){
+  const base = q.a*q.b;
+  if(q.mode==="twoStep") return q.op==="+" ? base + q.c : base - q.c;
+  return base;
+}
+function goalLabel(){
+  const lvl = level==="easy" ? "Easy" : level==="medium" ? "Medium" : "Hard";
+  return `${lvl} • Tables: ${selectedTables.slice().sort((a,b)=>a-b).join(", ")} • Round: ${roundTotal} Qs`;
+}
+function updateUI(){
+  els.goalText.textContent = goalLabel();
+  els.left.textContent = String(remaining);
+  els.xp.textContent = String(xp);
+  els.streak.textContent = String(streak);
+  els.correct.textContent = String(correct);
+  els.missed.textContent = String(missed);
+  const total = correct+missed;
+  els.acc.textContent = total ? `${Math.round((correct/total)*100)}%` : "0%";
+  els.bossIn.textContent = String(bossCounter);
+  renderMasteryList();
+  renderBadges();
+}
+function renderMasteryList(){
+  els.masteryList.innerHTML="";
+  selectedTables.slice().sort((a,b)=>a-b).forEach(t=>{
+    const p = progress.tables[String(t)];
+    const pct = masteryPct(t);
+    const wrap=document.createElement("div");
+    wrap.className="card";
+    wrap.style.display="inline-block";
+    wrap.style.margin="6px";
+    wrap.style.minWidth="160px";
+    wrap.innerHTML = `<b>${t}×</b><div class="tiny">${p.correct}/${p.seen} correct • best streak ${p.bestStreak}</div>
+      <div class="bar"><div style="width:${pct}%;"></div></div>
+      <div class="tiny">${pct}% mastery</div>`;
+    els.masteryList.appendChild(wrap);
+  });
+}
+function awardBadge(key){
+  if(progress.badges[key]) return;
+  progress.badges[key]=true;
+  saveProgress();
+  popConfetti();
+}
+function renderBadges(){
+  els.badges.innerHTML="";
+  const keys = Object.keys(progress.badges);
+  if(keys.length===0){
+    els.badges.innerHTML = `<div class="tiny">Earn badges by playing!</div>`;
+    return;
+  }
+  keys.forEach(k=>{
+    const b=document.createElement("div");
+    b.className="badge";
+    b.textContent=k;
+    els.badges.appendChild(b);
+  });
+}
+
+function nextQuestion(){
+  els.feedback.textContent="";
+  els.answer.value="";
+  els.answer.focus();
+  current = makeQuestion();
+  els.question.textContent = qText(current);
+  if(current.mode==="twoStep"){
+    speak(`${current.a} times ${current.b}, ${current.op==="+" ? "plus" : "minus"} ${current.c}. What is it?`);
+    setAvatarText("Two-step challenge! You’ve got this ✨", "game");
+  }else{
+    speak(`${current.a} times ${current.b}.`);
+    setAvatarText("What’s the answer, Riley?", "game");
+  }
+  updateUI();
+}
+function bossBattle(){
+  const a = selectedTables[Math.floor(Math.random()*selectedTables.length)];
+  const b = level==="easy" ? randInt(7,9) : randInt(9,12);
+  current = {a,b,mode:"boss"};
+  els.question.textContent = qText(current);
+  els.feedback.textContent = "Boss Battle! +25 XP if you win.";
+  speak(`Boss battle! ${a} times ${b}. You got this!`);
+  setAvatarText("Boss battle!! 🚀", "game");
+}
+function applyResult(ok, expected){
+  remaining--;
+  const pk = String(current.a);
+  const p = progress.tables[pk];
+  p.seen += 1;
+
+  if(ok){
+    correct++;
+    streak++;
+    bestStreakRound = Math.max(bestStreakRound, streak);
+
+    let gain = 10;
+    if(current.mode==="boss") gain = 25;
+    if(current.mode==="twoStep") gain = 15;
+    xp += gain;
+    progress.totalXP += gain;
+    p.correct += 1;
+
+    els.feedback.textContent = "✅ Correct! Great job!";
+    avatarCheer();
+    pulse("game","good");
+    setAvatarText(streak>=3 ? "YES! You’re on a streak! 🌟" : "Correct! Keep going! ⭐", "game");
+    speak(streak>=3 ? "Yes! You're on a streak!" : "Correct!");
+
+    bossCounter--;
+    if(bossCounter<=0){
+      bossCounter=10;
+      popConfetti();
+      saveProgress();
+      updateUI();
+      setTimeout(()=>bossBattle(), 450);
+      return;
+    }
+  }else{
+    missed++;
+    streak=0;
+    els.feedback.textContent = `❌ Not quite. The answer is ${expected}.`;
+    avatarSad();
+    pulse("game","bad");
+    setAvatarText("Good try. Let’s get the next one 💫", "game");
+    speak("Nice try. Let's get the next one.");
+  }
+
+  p.bestStreak = Math.max(p.bestStreak, bestStreakRound);
+
+  const total = correct+missed;
+  const acc = total ? (correct/total) : 0;
+  if(correct>=10) awardBadge("10 Correct");
+  if(bestStreakRound>=5) awardBadge("Streak 5");
+  if(acc>=0.9 && total>=10) awardBadge("90%+ Accuracy");
+  if(progress.totalXP>=250) awardBadge("250 XP");
+  for(let t=2;t<=12;t++){
+    if(masteryPct(t)>=90 && progress.tables[String(t)].seen>=20){
+      awardBadge(`Master ${t}×`);
+    }
+  }
+
+  saveProgress();
+  updateUI();
+  if(remaining>0){
+    const delay = 650; // same timing for correct/incorrect
+    setTimeout(()=>nextQuestion(), delay);
+  } else endRound();
+}
+function submit(){
+  const val = Number(els.answer.value);
+  if(!Number.isFinite(val)){
+    els.feedback.textContent="Type an answer first 🙂";
+    setAvatarText("Type your answer, Riley 🙂", "game");
+    speak("Type your answer.");
+    return;
+  }
+  const exp = answerOf(current);
+  applyResult(val===exp, exp);
+}
+function skip(){
+  const exp = answerOf(current);
+  applyResult(false, exp);
+}
+function startRound(){
+  if(selectedTables.length===0){ alert("Pick at least one table."); return; }
+  level = els.levelSel.value;
+  roundTotal = Number(els.roundLen.value);
+  remaining = roundTotal;
+
+  streak=0; bestStreakRound=0; correct=0; missed=0; xp=0;
+  bossCounter=10;
+  show("game");
+  setGameAvatar(AVATAR_NEUTRAL);
+  startTimer();
+  setAvatarText("Let’s go! I’m cheering for you ✨", "game");
+  nextQuestion();
+}
+function endRound(){
+  stopTimer();
+  show("end");
+  const total = correct+missed;
+  const acc = total ? Math.round((correct/total)*100) : 0;
+  els.summary.innerHTML =
+    `<div class="row">
+      <div class="card">⭐ XP Earned<br><b>${xp}</b></div>
+      <div class="card">🎯 Accuracy<br><b>${acc}%</b></div>
+      <div class="card">🔥 Best Streak<br><b>${bestStreakRound}</b></div>
+      <div class="card">⏱️ Time<br><b>${seconds}s</b></div>
+    </div>
+    <div style="margin-top:10px; opacity:.9">Progress is saved on this device.</div>`;
+  if(acc>=90) popConfetti();
+  setAvatarText(acc>=90 ? "You crushed it!! 🎉" : "Nice work. Ready for another round?", "both");
+  speak(acc>=90 ? "Mission complete! That was awesome!" : "Nice work. Ready for another round?");
+}
+
+els.startBtn.onclick = startRound;
+els.submitBtn.onclick = submit;
+els.skipBtn.onclick = skip;
+els.endBtn.onclick = endRound;
+els.playAgainBtn.onclick = ()=> startRound();
+els.backSetupBtn.onclick = ()=> { stopTimer(); show("setup"); };
+
+els.resetProgressBtn.onclick = ()=>{
+  if(confirm("Reset saved progress on this device?")){
+    localStorage.removeItem(STORAGE_KEY);
+    progress = defaultProgress();
+    renderProgressSummary();
+    setAvatarText("Progress reset. Fresh start! 🚀", "setup");
+    saveProgress();
+  }
+};
+
+document.addEventListener("keydown",(e)=>{
+  if(els.game.style.display==="block" && e.key==="Enter") submit();
+});
+
+setAvatarText("Hi Riley! Pick your tables, then tap <b>Start Mission</b> 🚀", "setup");
+</script>
+</body>
+</html>
